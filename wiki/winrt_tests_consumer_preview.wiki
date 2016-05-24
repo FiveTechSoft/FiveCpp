@@ -1,0 +1,53 @@
+build.bat
+{{{
+@set vcdir="c:\Program Files (x86)\Microsoft Visual Studio 11.0\VC"
+@set sdkdir="c:\Program Files (x86)\Windows Kits\8.0"
+@set winrt=%sdkdir%\include\winrt
+@set wrl=%winrt%\wrl
+@set shared=%sdkdir%\Include\shared
+@set lib="c:\Program Files (x86)\Windows Kits\8.0\Lib\win8\um\x86";%vcdir%\lib
+%vcdir%\bin\cl /I%vcdir%\include /I%sdkdir%\include\um /I%shared% /I%winrt% /I%wrl% %1.cpp /link user32.lib runtimeobject.lib
+if errorlevel 0 %1.exe
+}}}
+
+test1.cpp
+{{{
+#include <windows.h>
+#include <roapi.h>
+#include <winstring.h>
+#include <windows.ui.xaml.h>
+
+void CheckHR( LONG hr, char * szMsg )
+{
+   if( hr != S_OK )
+      MessageBox( 0, szMsg, "error", MB_ICONEXCLAMATION );
+}      		  
+  
+int WINAPI WinMain( HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCmdShow )
+{
+   LPWSTR str = L"Windows.UI.Xaml.Application";	
+   HSTRING hstr; 
+   IInspectable * ptr;
+   ABI::Windows::UI::Xaml::IApplication * pApplication;
+	
+   CheckHR( RoInitialize( RO_INIT_MULTITHREADED ), "RoInitialize" );
+   
+   CheckHR( WindowsCreateString( str, wcslen( str ), &hstr ), "WindowsCreateString" );
+   
+   CheckHR( RoActivateInstance( hstr, &ptr ), "RoActivateInstance" );
+   
+   CheckHR( ptr->QueryInterface( __uuidof( pApplication ), ( void** ) &pApplication ), "QueryInterface" );
+
+   MessageBox( 0, "before", "ok", MB_ICONINFORMATION );
+   
+   // CheckHR( pApplication->Run(), "Run" );
+
+   MessageBox( 0, "after", "ok", MB_ICONINFORMATION );
+
+   CheckHR( WindowsDeleteString( hstr ), "WindowsDeleteString" );
+
+   RoUninitialize();
+
+   return 0;
+}
+}}}
